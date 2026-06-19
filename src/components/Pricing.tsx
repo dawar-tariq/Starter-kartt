@@ -6,7 +6,7 @@ const plans = [
   {
     name: "Basic Plan",
     icon: <Zap className="w-6 h-6" />,
-    price: "2,999",
+    price: "5,499",
     tagline: "Perfect for new brands starting their online journey",
     delivery: "4 days",
     recommended: false,
@@ -28,7 +28,7 @@ const plans = [
   {
     name: "Growth Plan",
     icon: <Crown className="w-6 h-6" />,
-    price: "5,499",
+    price: "6,999",
     tagline: "For growing brands that want premium, converting websites",
     delivery: "5 days",
     recommended: false,
@@ -45,6 +45,7 @@ const plans = [
     ],
     bestFor: [
       "Growing fashion brands",
+      "Cafe and restaurants",
       "Businesses wanting better trust & conversions",
       "Brands ready to scale online",
     ],
@@ -52,7 +53,7 @@ const plans = [
   {
     name: "Premium Plan",
     icon: <Gem className="w-6 h-6" />,
-    price: "6,999",
+    price: "9,999",
     tagline: "For serious brands wanting premium positioning",
     delivery: "3 days",
     recommended: true,
