@@ -2,17 +2,23 @@
 
 - Vercel project: `starterkart`
 - Assigned production domain: `https://starterkart-six.vercel.app`
-- Source commit: `7b1e11d3edd59f62e33a901b04ef68945ee30ec7`
+- Source commit: `b80e8ce05fe722b2caa2bff6afcbbb0d4b73be52`
 - Source branch: `arena/9d57a8c0-starter-kartt`
 - Source repository: `dawar-tariq/Starter-kartt`
-- Deployment ID: `dpl_3h7PNXQYcR88tb3CacehqJsbzQvF`
+- Deployment ID: `dpl_2g4bdZt1t2NDGZpUqVEGT3jfNkMd`
+- Verified status: `READY` / `PROMOTED`, production alias assigned with no alias error.
+- Public production URL fetched successfully after promotion.
+
+## Responsive update
+
+This revision separates HTML copy and WebGL into independent responsive regions, removes oversized minimum stage heights, fits the camera to transformed model bounds, and refines the camera/ambient/finale choreography. Local production checks passed 40 chapter states plus eight finale compositions, including emulated mobile Desktop-site portrait and landscape, alongside the existing seven-width interaction/fallback/axe regression suite. Physical-device testing is not claimed. See `VERIFICATION.md` for current results and audit limits.
 
 ## Deployment method
 
 The Vercel account rejected repository linking because its GitHub Login Connection was missing. To publish without accessing credentials, this deployment uses a small Vercel build wrapper that:
 
 1. Downloads the public repository archive pinned to the exact source commit above.
-2. Verifies its SHA-256 digest: `f624e411b33f9acd46a5d5db6f6cfa970ac2a8a070deabebc84557558b4670eb`.
+2. Verifies its SHA-256 digest: `810c05f998c11c12f2d68d72f12b3aaae67758fc1d7cf42df0b9039041c58306`.
 3. Extracts the source, runs `npm ci --include=dev`, then `npm run build` on Node 22.
 4. Publishes only the generated `dist` assets.
 
