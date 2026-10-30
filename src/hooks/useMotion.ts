@@ -6,13 +6,6 @@ export default function useMotion() {
   useEffect(() => {
     const media = gsap.matchMedia();
     media.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.from('.hero-content > *', {
-        y: 25,
-        duration: 1,
-        stagger: 0.12,
-        ease: 'power3.out',
-        clearProps: 'all',
-      });
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((element) =>
         gsap.from(element, {
           y: 35,

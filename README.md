@@ -19,6 +19,7 @@ npm run preview -- --host 0.0.0.0
 - `src/components/ExperienceJourney.tsx`: a five-chapter native-scroll, sticky 3D narrative. GSAP scrubs HTML transitions; a shared progress ref drives the Three.js world without scroll-driven React rendering.
 - `src/data/journey.ts`: configurable chapter headlines and explanatory copy.
 - `src/components/scene3d/CommerceScene.tsx`: camera choreography, object-to-storefront transformation, lighting, unfolded device panels, and connected commerce routes.
+- `src/components/scene3d/framing.ts`: bounds-based camera framing using the actual canvas aspect, shared by both scenes.
 - `ShoppingSculpture.tsx`, `WorldParts.tsx`, and `FinaleScene.tsx`: original reusable procedural geometry and the closing sculpture. No model download or remote environment texture.
 - `src/hooks/useProjectGallery.ts`: desktop scroll-driven, perspective portfolio gallery. Mobile/reduced-motion modes use the regular stacked layout.
 - `src/styles-journey.css`: cinematic composition, chapter controls, tablet/mobile framing, static fallback, and gallery styles.
@@ -60,8 +61,11 @@ With the production preview running on port 4173:
 
 ```sh
 npm test
+npm run test:responsive
 npm run audit
 ```
+
+`npm run test:responsive` asserts text/canvas separation, complete copy/actions, viewport fit, and model framing in all five chapters plus the finale across phone, small-phone, landscape, tablet, desktop, and emulated mobile Desktop-site viewports. Screenshots and measurements are saved under `test-results/responsive/`. This is browser emulation, not a physical Android/iOS test.
 
 `TEST_URL` can override the default. The scripts use Playwright, axe, Lighthouse, and a dev-only packaged Chromium. In a standard environment you may adapt `scripts/browser.mjs` to use your installed browser. Reports are written to ignored `test-results/`.
 

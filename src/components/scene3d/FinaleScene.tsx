@@ -2,6 +2,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import * as THREE from 'three';
+import { createCameraFramer } from './framing';
 import { BagBody, BagEmblem, BagHandles } from './ShoppingSculpture';
 function ClosingSculpture({
   progress,
@@ -11,20 +12,26 @@ function ClosingSculpture({
   reduced: boolean;
 }) {
   const bag = useRef<THREE.Group>(null),
-    orbit = useRef<THREE.Group>(null);
-  useFrame(({ clock }, delta) => {
-    if (!bag.current || !orbit.current) return;
+    world = useRef<THREE.Group>(null);
+  const frameCamera = useMemo(createCameraFramer, []);
+  useFrame(({ clock, camera, gl }, delta) => {
+    if (!bag.current || !world.current) return;
     const t = reduced ? 0 : clock.elapsedTime;
     bag.current.rotation.y = THREE.MathUtils.damp(
       bag.current.rotation.y,
-      -0.4 + (reduced ? 0 : progress.current * 1.1),
+      -0.24 + (reduced ? 0 : progress.current * 0.44),
       5,
-      delta,
+      Math.min(delta, 0.08),
     );
-    bag.current.rotation.z = -0.12 + Math.sin(t * 0.35) * 0.025;
-    bag.current.position.y = -0.45 + Math.sin(t * 0.7) * 0.06;
-    orbit.current.rotation.y = reduced ? -0.2 : t * 0.045;
-    orbit.current.rotation.z = -0.4 + (reduced ? 0 : progress.current * 0.4);
+    bag.current.rotation.z = -0.055 + Math.sin(t * 0.35) * 0.012;
+    bag.current.position.y = -0.15 + Math.sin(t * 0.65) * 0.035;
+    gl.domElement.dataset.modelFrame = frameCamera(
+      world.current,
+      camera as THREE.PerspectiveCamera,
+      -0.06,
+      0.1,
+      0.87,
+    );
   });
   return (
     <>
@@ -46,24 +53,24 @@ function ClosingSculpture({
           color="#e0b1cb"
         />
       </Environment>
-      <group ref={bag} rotation={[0.05, -0.4, -0.12]} position={[0, -0.45, 0]}>
-        <BagBody />
-        <BagHandles />
-        <BagEmblem />
-      </group>
-      <group ref={orbit} position={[0, 0.1, -0.4]} rotation={[0.5, -0.2, -0.4]}>
-        {[0, 1, 2].map((i) => (
-          <mesh key={i} rotation={[0.35 * i, 0.6 * i, 0.2 * i]}>
-            <torusGeometry
-              args={[2.55 + i * 0.16, 0.025 - i * 0.005, 6, 100]}
-            />
-            <meshStandardMaterial
-              color={i === 0 ? '#d7b2ce' : '#715781'}
-              metalness={0.9}
-              roughness={0.25}
-            />
-          </mesh>
-        ))}
+      <group ref={world}>
+        <group
+          ref={bag}
+          rotation={[0.025, -0.24, -0.055]}
+          position={[0, -0.15, 0]}
+        >
+          <BagBody />
+          <BagHandles />
+          <BagEmblem />
+        </group>
+        <mesh position={[0, -2.1, 0]}>
+          <cylinderGeometry args={[2.3, 2.4, 0.16, 80]} />
+          <meshStandardMaterial
+            color="#30213c"
+            metalness={0.65}
+            roughness={0.35}
+          />
+        </mesh>
       </group>
     </>
   );

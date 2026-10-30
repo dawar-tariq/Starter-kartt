@@ -7,6 +7,7 @@ import {
 } from '@react-three/drei';
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import * as THREE from 'three';
+import { createCameraFramer } from './framing';
 import { BagBody, BagEmblem, BagHandles } from './ShoppingSculpture';
 import {
   StudioArchitecture,
@@ -34,12 +35,12 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
     swatches = useRef<THREE.Group>(null),
     architecture = useRef<THREE.Group>(null),
     connections = useRef<THREE.Group>(null),
-    product = useRef<THREE.Group>(null),
-    orbit = useRef<THREE.Group>(null);
+    product = useRef<THREE.Group>(null);
   const keyLight = useRef<THREE.DirectionalLight>(null),
     rimLight = useRef<THREE.PointLight>(null);
   const packets = useRef<(THREE.Mesh | null)[]>([]);
   const pointer = useRef({ x: 0, y: 0 });
+  const interaction = useRef(new THREE.Vector2());
   const progress = useRef(0),
     ambientTime = useRef(0);
   const [mainMap, sideMap] = useTexture([
@@ -52,7 +53,7 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
   useEffect(() => {
     readyCallback.current();
   }, []);
-  const look = useMemo(() => new THREE.Vector3(), []);
+  const frameCamera = useMemo(createCameraFramer, []);
   useEffect(() => {
     const move = (e: PointerEvent) => {
       if (e.pointerType === 'mouse')
@@ -74,10 +75,15 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
   useFrame(({ camera, size, gl, invalidate }, delta) => {
     if (!world.current || !assembly.current || !state.current) return;
     const { reduced, paused } = state.current;
-    const mobile = size.width < 901;
+    const response = 1 - Math.exp(-5 * Math.min(delta, 0.05));
+    interaction.current.x +=
+      (pointer.current.x - interaction.current.x) * response;
+    interaction.current.y +=
+      (pointer.current.y - interaction.current.y) * response;
+    const mobile = size.width < 640;
     const perspective = camera as THREE.PerspectiveCamera;
-    if (perspective.fov !== (mobile ? 45 : 39)) {
-      perspective.fov = mobile ? 45 : 39;
+    if (perspective.fov !== 38) {
+      perspective.fov = 38;
       perspective.updateProjectionMatrix();
     }
     progress.current = reduced
@@ -100,20 +106,17 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
       launch = range(p, 0.79, 0.96);
     const travel = range(p, 0.05, 0.27),
       fly = range(p, 0.33, 0.51);
-    world.current.position.set(
-      mobile ? 0 : mix(2.2, 1.8, launch),
-      mobile ? -2.3 : 0.05,
-      0,
-    );
-    world.current.scale.setScalar(mobile ? mix(0.72, 0.65, unfold) : 1);
+    // The canvas has its own layout cell; the object no longer needs viewport offsets.
+    world.current.position.set(0, 0, 0);
+    world.current.scale.setScalar(1);
     assembly.current.position.y =
       Math.sin(t * 0.65) * 0.065 * idle + mix(0.15, 0.3, launch);
     assembly.current.rotation.set(
-      0.04 + pointer.current.y * 0.025 * idle,
+      0.04 + interaction.current.y * 0.015 * idle,
       mix(-0.28, 0.02, unfold) +
-        brand * 0.9 +
+        brand * 0.42 +
         Math.sin(t * 0.2) * 0.025 * idle +
-        pointer.current.x * 0.07 * idle,
+        interaction.current.x * 0.025 * idle,
       mix(-0.09, 0, unfold),
     );
     shell.current!.scale.set(
@@ -122,7 +125,7 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
       mix(1, 0.25, unfold),
     );
     handles.current!.scale.y = Math.max(0.001, 1 - unfold);
-    handles.current!.position.y = brand * 0.48 - unfold * 0.2;
+    handles.current!.position.y = brand * 0.22 - unfold * 0.2;
     handles.current!.rotation.z = brand * -0.12;
     emblem.current!.scale.setScalar(Math.max(0.001, 1 - range(p, 0.29, 0.36)));
     screen.current!.visible = unfold > 0.01;
@@ -143,7 +146,7 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
     rightWing.current!.rotation.y = mix(-1.4, -0.33, unfold);
     swatches.current!.visible = brand > 0.005;
     swatches.current!.scale.setScalar(Math.max(0.001, brand));
-    swatches.current!.rotation.y = t * 0.12;
+    swatches.current!.rotation.y = -0.12 + brand * 0.15;
     architecture.current!.rotation.y =
       mix(-0.12, 0.14, travel) + launch * -0.26;
     architecture.current!.position.z = mix(-1.2, -2.3, unfold);
@@ -161,12 +164,6 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
       1.05,
     );
     product.current!.rotation.y = Math.sin(t * 0.2) * 0.12;
-    orbit.current!.rotation.set(
-      mix(0.85, 1.4, fly),
-      t * 0.035 * idle,
-      mix(-0.3, 0.2, launch),
-    );
-    orbit.current!.scale.setScalar(mix(1, 1.3, commerce));
     packets.current.forEach((packet, index) => {
       if (packet) {
         const point = routes[index].getPoint((t * 0.12 + index / 3) % 1);
@@ -175,24 +172,19 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
     });
     keyLight.current!.intensity = mix(3.2, 4.5, unfold);
     rimLight.current!.intensity = mix(12, 20, commerce);
-    const cx = mobile
-      ? 0.2 + travel * 0.35
-      : mix(0, 2.1, travel) - fly * 2.7 - launch * 0.6;
-    const cy = mobile
-      ? 0.7
-      : mix(1.25, 2.4, travel) - fly * 1.0 + commerce * 0.7 + launch * 0.7;
-    const cz = mobile
-      ? 10.3 + commerce * 0.8
-      : 11.1 + travel * 1.0 - fly * 0.65 + commerce * 1.3 + launch * 0.5;
-    const portalDive =
-      Math.sin(range(p, 0.27, 0.43) * Math.PI) * (mobile ? 0.75 : 3.4);
-    camera.position.set(
-      cx + pointer.current.x * 0.08 * idle,
-      cy + pointer.current.y * 0.035 * idle,
-      cz - portalDive,
+    const yaw =
+      mix(-0.13, 0.2, travel) - fly * 0.31 + commerce * 0.1 - launch * 0.16;
+    const pitch = 0.09 + travel * 0.055 - fly * 0.035 + launch * 0.045;
+    // Frame every visible part, including unfolded panels, for THIS canvas aspect ratio.
+    // Padding remains generous even during the camera dolly and pointer response.
+    const envelope = frameCamera(
+      world.current,
+      perspective,
+      yaw + interaction.current.x * 0.012 * idle,
+      pitch,
+      mix(0.86, 0.91, Math.sin(range(p, 0.28, 0.47) * Math.PI)),
     );
-    look.set(mobile ? 0 : -0.05, mobile ? -0.22 : 0.35 - unfold * 0.25, 0);
-    camera.lookAt(look);
+    gl.domElement.dataset.modelFrame = envelope;
     // Exposed diagnostics make camera/scroll regression tests deterministic without React rerenders.
     gl.domElement.dataset.sceneProgress = p.toFixed(3);
     gl.domElement.dataset.camera = camera.position
@@ -202,15 +194,14 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
   });
   return (
     <>
-      <fog attach="fog" args={['#100b19', 15, 38]} />
-      <ambientLight intensity={0.65} color="#c8b3de" />
+      <ambientLight intensity={0.8} color="#c8b3de" />
       <directionalLight
         ref={keyLight}
         position={[-3, 7, 6]}
         intensity={3.2}
         color="#ead5ef"
       />
-      <directionalLight position={[6, 3, -4]} intensity={4.6} color="#a98ddb" />
+      <directionalLight position={[6, 3, -4]} intensity={3.2} color="#a98ddb" />
       <pointLight
         ref={rimLight}
         position={[1.8, 2, -2]}
@@ -246,22 +237,10 @@ function World({ state, onReady }: Pick<SceneProps, 'state' | 'onReady'>) {
           scale={[6, 3, 1]}
         />
       </Environment>
-      <group ref={world} position={[2.2, 0.05, 0]}>
+      <group ref={world} position={[0, 0, 0]}>
         <Platform />
         <group ref={architecture} position={[0, 0, -1.2]}>
           <StudioArchitecture />
-        </group>
-        <group ref={orbit} position={[0, 0.3, -0.5]} rotation={[0.85, 0, -0.3]}>
-          <mesh>
-            <torusGeometry args={[3.4, 0.012, 6, 128]} />
-            <meshStandardMaterial
-              color="#9677ab"
-              metalness={0.7}
-              roughness={0.3}
-              transparent
-              opacity={0.5}
-            />
-          </mesh>
         </group>
         <group ref={assembly}>
           <group ref={shell}>
@@ -404,7 +383,7 @@ export default function CommerceScene({
     <div ref={host} className="commerce-canvas">
       <Canvas
         dpr={innerWidth < 901 ? 1 : [1, 1.4]}
-        camera={{ fov: innerWidth < 901 ? 45 : 39, position: [0, 1.25, 11.1] }}
+        camera={{ fov: 38, position: [0, 1, 15] }}
         frameloop={
           !visible || state.current?.reduced || state.current?.paused
             ? 'demand'

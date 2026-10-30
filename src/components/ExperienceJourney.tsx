@@ -76,7 +76,7 @@ export default function ExperienceJourney() {
       panels.forEach((panel, index) => {
         gsap.set(panel, {
           autoAlpha: index === 0 ? 1 : 0,
-          y: index === 0 ? 0 : 55,
+          y: index === 0 ? 0 : 22,
         });
         if (index > 0)
           timeline.to(
@@ -87,7 +87,7 @@ export default function ExperienceJourney() {
         if (index < 4)
           timeline.to(
             panel,
-            { autoAlpha: 0, y: -45, duration: 0.065, ease: 'power1.in' },
+            { autoAlpha: 0, y: -18, duration: 0.065, ease: 'power1.in' },
             index / 4 + 0.09,
           );
       });
@@ -118,32 +118,6 @@ export default function ExperienceJourney() {
         data-progress="0"
       >
         <div className="journey-atmosphere" />
-        <div className="journey-scene scene-wrap" aria-hidden="true">
-          <img
-            className="journey-fallback bag-fallback"
-            src="/images/bag.svg"
-            alt=""
-          />
-          {enabled && !failed && (
-            <SceneBoundary
-              onFailure={() => {
-                setFailed(true);
-                setReady(false);
-              }}
-            >
-              <Suspense fallback={null}>
-                <Scene
-                  state={state}
-                  onReady={() => setReady(true)}
-                  onFailure={() => {
-                    setFailed(true);
-                    setReady(false);
-                  }}
-                />
-              </Suspense>
-            </SceneBoundary>
-          )}
-        </div>
         <div className="journey-topline">
           <span>
             <i /> THE STARTERKART DIMENSION
@@ -152,46 +126,77 @@ export default function ExperienceJourney() {
             Skip the experience <ArrowUpRight size={12} />
           </a>
         </div>
-        <div className="journey-panels">
-          {chapters.map((chapter, index) => (
-            <article
-              key={chapter.label}
-              className={`journey-panel ${index === 0 ? 'journey-opening' : ''}`}
-              aria-hidden={!staticMode && active !== index}
-              inert={!staticMode && active !== index}
-            >
-              <p className="journey-eyebrow">
-                <span />
-                {chapter.eyebrow}
-              </p>
-              {index === 0 ? (
-                <h1 id="hero-heading">
-                  <ChapterTitle lines={chapter.title} />
-                </h1>
-              ) : (
-                <h2>
-                  <ChapterTitle lines={chapter.title} />
-                </h2>
-              )}
-              <p className="journey-copy">{chapter.copy}</p>
-              {index === 0 ? (
-                <div className="hero-actions">
-                  <a className="button button-pink" href="#contact">
-                    Build your store <Arrow />
+        <div className="journey-body">
+          <div className="journey-scene scene-wrap" aria-hidden="true">
+            <img
+              className="journey-fallback bag-fallback"
+              src="/images/bag.svg"
+              alt=""
+            />
+            {enabled && !failed && (
+              <SceneBoundary
+                onFailure={() => {
+                  setFailed(true);
+                  setReady(false);
+                }}
+              >
+                <Suspense fallback={null}>
+                  <Scene
+                    state={state}
+                    onReady={() => setReady(true)}
+                    onFailure={() => {
+                      setFailed(true);
+                      setReady(false);
+                    }}
+                  />
+                </Suspense>
+              </SceneBoundary>
+            )}
+          </div>
+          <div className="journey-panels">
+            {chapters.map((chapter, index) => (
+              <article
+                key={chapter.label}
+                className={`journey-panel ${index === 0 ? 'journey-opening' : ''}`}
+                aria-hidden={!staticMode && active !== index}
+                inert={!staticMode && active !== index}
+              >
+                <p className="journey-eyebrow">
+                  <span />
+                  {chapter.eyebrow}
+                </p>
+                {index === 0 ? (
+                  <h1 id="hero-heading">
+                    <ChapterTitle lines={chapter.title} />
+                  </h1>
+                ) : (
+                  <h2>
+                    <ChapterTitle lines={chapter.title} />
+                  </h2>
+                )}
+                <p className="journey-copy">{chapter.copy}</p>
+                {index === 0 ? (
+                  <div className="hero-actions">
+                    <a className="button button-pink" href="#contact">
+                      Build your store <Arrow />
+                    </a>
+                    <a className="text-link" href="#work">
+                      Explore our work <span aria-hidden="true">↘</span>
+                    </a>
+                  </div>
+                ) : index === 4 ? (
+                  <a
+                    className="button button-pink journey-work-cta"
+                    href="#work"
+                  >
+                    Discover what’s possible <Arrow />
                   </a>
-                  <a className="text-link" href="#work">
-                    Explore our work <span aria-hidden="true">↘</span>
-                  </a>
-                </div>
-              ) : index === 4 ? (
-                <a className="button button-pink journey-work-cta" href="#work">
-                  Discover what’s possible <Arrow />
-                </a>
-              ) : (
-                <p className="journey-detail">{chapter.detail}</p>
-              )}
-            </article>
-          ))}
+                ) : (
+                  <p className="journey-detail">{chapter.detail}</p>
+                )}
+              </article>
+            ))}
+          </div>
         </div>
         <div className="world-annotation" aria-hidden="true">
           <span className="annotation-cross">+</span>
